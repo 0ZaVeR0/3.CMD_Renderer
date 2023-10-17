@@ -96,11 +96,9 @@ Image* converToGrayscale(Image* img) {
 
             unsigned char gray = (unsigned char)(0.299 * r + 0.587 * g + 0.114 * b);
 
-            unsigned char out = gray % 16;
-
-            newimg->pixels[y][x * 3] = out;
-            newimg->pixels[y][x * 3 + 1] = out;
-            newimg->pixels[y][x * 3 + 2] = out;
+            newimg->pixels[y][x * 3] = gray;
+            newimg->pixels[y][x * 3 + 1] = gray;
+            newimg->pixels[y][x * 3 + 2] = gray;
         }
     }
     return newimg;
@@ -116,7 +114,7 @@ void show(Image* img, char* screen) {
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int color = img ->pixels[y][x * 3];
+            int color = (img ->pixels[y][x * 3]) % 16;
             char pixel = gradient[color];
             screen[x + y * width + y] = pixel;
         }
