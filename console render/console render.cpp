@@ -110,11 +110,11 @@ void show(Image* img, char* screen) {
     int width = img->image_width;
  
     char gradient[] = " .:!/r(lZ4H9W8$@";
-    int gradientsize = std::size(gradient) - 2;
+    int gradientsize = std::size(gradient) - 1;
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int color = (img ->pixels[y][x * 3]) % 16;
+            int color = (img ->pixels[y][x * 3]) % gradientsize;
             char pixel = gradient[color];
             screen[x + y * width + y] = pixel;
         }
