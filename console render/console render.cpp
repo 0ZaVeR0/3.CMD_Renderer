@@ -1,12 +1,15 @@
 ﻿#include <iostream>
 #include <opencv2/opencv.hpp>
-#include<windows.h> 
+#include <windows.h> 
 #include <chrono>
 
 using namespace std;
 using namespace cv;
 using namespace std::chrono;
 
+//class for storing images in form of 2d array.
+//when init creates empty 2d array in memory.
+//posible to get 3 params: width and height of image, and pointer to pixels array.
 class Image {
 public:
     int image_height;
@@ -20,6 +23,7 @@ public:
 
         pixels = new unsigned char* [image_height];
         for (int i = 0; i < image_height; i++) {
+            //pixels array 3 times wider then image width due to storing r,g,b
             pixels[i] = new unsigned char[image_width * 3];
         }
     }
@@ -33,6 +37,9 @@ public:
 
 };
 
+// downscaling image with nearest neighbour algorithm. 
+// takes pointer to image we want to scale, new height and new width we want it to be.
+// returns pointer to new image.
 Image* resizeImage(Image* img, int newHeight, int newWidth) {
     if (img == nullptr || newHeight >= img->image_height || newWidth >= img->image_width) {
         return nullptr;
@@ -53,6 +60,9 @@ Image* resizeImage(Image* img, int newHeight, int newWidth) {
     return newimg;
 }
 
+//stretches image's width 2 times. Due to console characters beeing twise taller then width.
+//tekes pointer to image we want to stretch.
+//returns pointer to new image.
 Image* stretchImage(Image* img) {
     if (img == nullptr) {
         return nullptr;
@@ -77,6 +87,9 @@ Image* stretchImage(Image* img) {
     return newimg;
 }
 
+//convers rgb image into grayscale
+//takes pointer to image we want to grayscale
+//returns pointer to new image
 Image* converToGrayscale(Image* img) {
     if (img == nullptr) {
         return nullptr;
@@ -85,8 +98,7 @@ Image* converToGrayscale(Image* img) {
     int height = img->image_height;
 
     Image* newimg = new Image(height, width);
-
-
+    
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
 
@@ -104,7 +116,9 @@ Image* converToGrayscale(Image* img) {
     return newimg;
 }
 
-
+//converts image pixels into ascii symbols and writes them to screen array.
+//takes pointer to image we want to output and pointer to screen array.
+//does not output enything. Writes data directly to screen array we gave.
 void show(Image* img, char* screen) {
     int height = img->image_height;
     int width = img->image_width;
@@ -124,11 +138,15 @@ void show(Image* img, char* screen) {
 
 int main(int argc, char** argv)
 {
+    // playspeed
     float speed = 0.8;
+    //console height and width in symbols.
     int screen_width = 120;
     int screen_height = 30;
+    
     int frameNum = 0;
 
+    //imports a videofile.
     //VideoCapture video(argv[1]);
     VideoCapture video("Bad Apple!!.mp4");
     //VideoCapture video("Saul Goodman 3D Green Screen.mp4");
@@ -143,17 +161,18 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    //gets video data: height, width, fps
     int video_width = (float)video.get(CAP_PROP_FRAME_WIDTH);
     int video_height = (float)video.get(CAP_PROP_FRAME_HEIGHT);
     double fps = video.get(CAP_PROP_FPS);
 
-    //float pixelaspect = 11.0f / 24.0f;
+    //calculates how much we need to scale down the video to fit in console.
     float scaling = video_height / screen_height;
     int height = (int)(video_height / scaling);
     int width = (int)(video_width / scaling);
 
     while (true) {
-
+        //loop start time in milliseconds. 
         uint64_t ms_start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
         Mat frame;
@@ -163,15 +182,15 @@ int main(int argc, char** argv)
         }
         
         frameNum++;
+
+        //creates and writes frame to Image class.
         Image* img = new Image(frame.rows,frame.cols);
-
-
         for (int y = 0; y < frame.rows; y++) {
             for (int x = 0; x < frame.cols; x++) {
                 memcpy(img ->pixels[y],frame.ptr(y),frame.cols * sizeof(unsigned char) * 3);
             }
         }
-
+        //applies scaling, stretching and graying.
         Image* resizedimg = resizeImage(img,height,width);
         if (resizedimg == nullptr) {
             cout << "image scaling error\n";
@@ -189,19 +208,25 @@ int main(int argc, char** argv)
             cout << "image graying error\n";
             return -1;
         }
-        
+
+        //creates 1d array of symbols to witch will be outputed in console. 
         char* screen = new char[grayedimg->image_width * grayedimg->image_height + 1 + grayedimg->image_height];
         screen[grayedimg->image_width * grayedimg->image_height + grayedimg->image_height] = '\0';
 
         show(grayedimg,screen);
 
+        //lood end time in milleseconds.
         uint64_t ms_end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
-        uint64_t time_diff = ((1000. / fps) - (ms_end - ms_start)) / speed;
+        //calculates how much we need to wait to get fps as in imported video
+        uint64_t time_diff = (1000. / fps) / speed - (ms_end - ms_start);
 
         Sleep(time_diff);
 
+        //prints array in console
         cout << screen;
+
+        //deletes every array that will be re-created next frame to save memory
         delete img;
         delete resizedimg;
         delete stretchedimg;
