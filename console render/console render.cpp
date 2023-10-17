@@ -53,7 +53,7 @@ Image* resizeImage(Image* img, int newHeight, int newWidth) {
     return newimg;
 }
 
-Image* strechImage(Image* img) {
+Image* stretchImage(Image* img) {
     if (img == nullptr) {
         return nullptr;
     }
@@ -178,13 +178,13 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        Image* srtechedimg = strechImage(resizedimg);
+        Image* srtetchedimg = stretchImage(resizedimg);
         if (srtechedimg == nullptr) {
             cout << "image streching error\n";
             return -1;
         }
 
-        Image* grayedimg = converToGrayscale(srtechedimg);
+        Image* grayedimg = converToGrayscale(srtetchedimg);
         if (grayedimg == nullptr) {
             cout << "image graying error\n";
             return -1;
@@ -201,9 +201,10 @@ int main(int argc, char** argv)
 
         Sleep(time_diff);
 
-        std::cout << screen;
+        cout << screen;
         delete img;
         delete resizedimg;
+        delete stretchedimg;
         delete grayedimg;
         delete[] screen;
     }
